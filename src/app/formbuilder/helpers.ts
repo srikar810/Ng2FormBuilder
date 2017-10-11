@@ -8,6 +8,7 @@ import utils from './utils';
 import { control } from './control';
 import controlCustom from './controls/custom';
 import I18N from "./mi18n";
+import FormRender from "./form-render";
 
 const m = utils.markup;
 
@@ -297,8 +298,26 @@ export default class Helpers {
         // save action for current `dataType`
         data.formData = doSave[(<any>config).opts.dataType](stage);
 
-        // trigger formSaved event
-        document.dispatchEvent(events.formSaved);
+        if (data.formData) {
+            const renderForm = new FormRender();
+            // instantiate the layout class & loop through the field configuration
+            let engine = new (<any>config).opts.layout((<any>config).opts.layoutTemplates);
+            let  element = renderForm.getElement('#renderForm');
+            console.log(element);
+            var jsnFrm = JSON.parse(data.formData);
+            let rendered = [];
+            for (let i = 0; i < jsnFrm.length; i++) {
+                let fieldData = jsnFrm[i];
+                let sanitizedField = renderForm.santizeField(fieldData);
+                let controlClass = control.getClass(fieldData.type, fieldData.subtype);
+                let field = engine.build(controlClass, sanitizedField);
+                rendered.push(field);
+            }
+            element.emptyContainer();
+            element.appendFormFields(rendered);
+            console.log(rendered);
+        }
+
         return data.formData;
     }
 
@@ -413,9 +432,9 @@ export default class Helpers {
             let title = I18N.get('fieldNonEditable');
 
             if (title) {
-                let tt = utils.markup('p', title, {className: 'frmb-tt'});
+                let tt = utils.markup('p', title, { className: 'frmb-tt' });
                 field.appendChild(tt);
-                field.addEventListener('mousemove', e => move(e, {tt, field}));
+                field.addEventListener('mousemove', e => move(e, { tt, field }));
             }
         });
     }
@@ -548,11 +567,11 @@ export default class Helpers {
             _this.closeConfirm(overlay);
         };
 
-        let btnWrap = m('div', [no, yes], {className: 'button-wrap'});
+        let btnWrap = m('div', [no, yes], { className: 'button-wrap' });
 
         className = 'form-builder-dialog ' + className;
 
-        let miniModal = m('div', [message, btnWrap], {className});
+        let miniModal = m('div', [message, btnWrap], { className });
         if (!coords) {
             const dE = document.documentElement;
             coords = {
@@ -588,7 +607,7 @@ export default class Helpers {
 
         className = 'form-builder-dialog ' + className;
 
-        let miniModal = utils.markup('div', content, {className: className});
+        let miniModal = utils.markup('div', content, { className: className });
         if (!coords) {
             coords = {
                 pageX: Math.max(clientWidth, window.innerWidth || 0) / 2,
@@ -695,7 +714,7 @@ export default class Helpers {
         if (!(<any>config).opts.sortableControls) {
             return false;
         }
-        const {sessionStorage, JSON} = <any>window;
+        const { sessionStorage, JSON } = <any>window;
 
         let fieldOrder = [];
 
@@ -787,7 +806,7 @@ export default class Helpers {
     toggleEdit(fieldId, animate = true) {
         const field = document.getElementById(fieldId);
         const toggleBtn = $('.toggle-form', field);
-      if ( !toggleBtn.length ) return;
+        if (!toggleBtn.length) return;
         const editPanel = $('.frm-holder', field);
         field.classList.toggle('editing');
         toggleBtn.toggleClass('open');
@@ -866,7 +885,7 @@ export default class Helpers {
         const data = this.data;
         const formData = utils.escapeHtml(data.formData);
         const code = m('code', formData, {
-            className: `formData-${ (<any>config).opts.dataType}`
+            className: `formData-${(<any>config).opts.dataType}`
         });
 
         this.dialog(m('pre', code), null, 'data-dialog');
@@ -906,7 +925,7 @@ export default class Helpers {
             return false;
         }
 
-      $field.slideUp(animationSpeed, function () {
+        $field.slideUp(animationSpeed, function () {
             $field.removeClass('deleting');
             $field.remove();
             fieldRemoved = true;
@@ -928,7 +947,7 @@ export default class Helpers {
      * @return {Object} DOM element for action button
      */
     processActionButtons(buttonData) {
-        let {label, events, ...attrs} = buttonData;
+        let { label, events, ...attrs } = buttonData;
         let data = this.data;
 
         if (!label) {
@@ -1024,8 +1043,8 @@ export default class Helpers {
      */
     processOptions(options) {
         const _this = this;
-      let {actionButtons, replaceFields, ...opts} = options;
-      actionButtons = [ {
+        let { actionButtons, replaceFields, ...opts } = options;
+        actionButtons = [{
             type: 'button',
             id: 'clear',
             className: 'clear-all btn btn-danger',
@@ -1036,7 +1055,7 @@ export default class Helpers {
             type: 'button',
             label: 'viewJSON',
             id: 'data',
-        className: 'btn btn-default get-data',
+            className: 'btn btn-default get-data',
             events: {
                 click: _this.showData.bind(_this)
             }
@@ -1051,10 +1070,10 @@ export default class Helpers {
                 }
             }
         }].concat(options.actionButtons);
-        (<any>config).opts = (<any>Object).assign({}, {actionButtons}, opts);
-      if ( replaceFields !== undefined )
-        opts.disableFields = opts.disableFields.concat(replaceFields.map(({type}) => type && type));
-      (<any>config).opts = Object.assign({}, {actionButtons}, opts);
+        (<any>config).opts = (<any>Object).assign({}, { actionButtons }, opts);
+        if (replaceFields !== undefined)
+            opts.disableFields = opts.disableFields.concat(replaceFields.map(({ type }) => type && type));
+        (<any>config).opts = Object.assign({}, { actionButtons }, opts);
         return (<any>config).opts;
     }
 

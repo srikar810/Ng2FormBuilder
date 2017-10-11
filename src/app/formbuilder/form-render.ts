@@ -1,10 +1,9 @@
-import 'babel-polyfill';
 import 'babel-regenerator-runtime';
 import '../../assets/sass/form-render.scss';
 import utils from './utils';
 import events from './events';
 import layout from './layout';
-import './control/index';
+import './controls/index';
 import { defaultI18n } from './config';
 import { control } from "./control";
 import controlCustom from "./controls/custom";
@@ -13,7 +12,7 @@ import I18N from "./mi18n";
 /**
  * FormRender Class
  */
-class FormRender {
+export default class FormRender {
     options: any;
     markup: any;
 
